@@ -1,18 +1,32 @@
 from google import genai
 
-# ✅ You must import `types` from google.genai if you want to use `GenerateContentConfig`
-from google.genai import types
+from dotenv import load_dotenv
+import os
 
+# Load environment variables
+load_dotenv()
+
+# Verify GEMINI_API_KEY is set
+if not os.getenv("GEMINI_API_KEY"):
+    raise ValueError("GEMINI_API_KEY environment variable not found. Please set it in .env or system environment.")
+
+# No need for genai.configure() since GEMINI_API_KEY is auto-detected
 client = genai.Client()
 
 template = (
-    "You are tasked with extracting specific information from the following text content: {dom_content}. "
-    "Please follow these instructions carefully:\n\n"
-    "1. **Extract Information:** Only extract the information that directly matches the provided description: {parse_description}.\n"
-    "2. **No Extra Content:** Do not include any additional text, comments, or explanations in your response.\n"
-    "3. **Empty Response:** If no information matches the description, return an empty string ('').\n"
-    "4. **Direct Data Only:** Your output should contain only the data that is explicitly requested, with no other text."
+    "You are an information extractor.\n\n"
+    "Your task is to extract only the information that matches the description below from the provided text content.\n\n"
+    "## TEXT CONTENT ##\n"
+    "{dom_content}\n\n"
+    "## EXTRACTION TASK ##\n"
+    "{parse_description}\n\n"
+    "## OUTPUT FORMAT ##\n"
+    "- Return the result as a clear, clean bullet list: `- Item 1`, `- Item 2`, etc.\n"
+    "- Each item must be on its own line.\n"
+    "- Do not add any extra text, titles or explanations.\n"
+    "- If no matches are found, return exactly: 'NO_MATCH_FOUND'.\n"
 )
+
 
 def parse_with_Gemini(dom_chunks, parse_description):
     parsed_results = []
@@ -21,22 +35,15 @@ def parse_with_Gemini(dom_chunks, parse_description):
             prompt = template.format(dom_content=chunk, parse_description=parse_description)
             response = client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=prompt,
-                generation_config=types.GenerationConfig(
-                    temperature=0
-                ),
-                system_instruction=(
-                    "You are a precise data extractor. "
-                    "Your role is to extract only the information that exactly matches the provided description, "
-                    "returning it without any additional text, comments, or explanations. "
-                    "If no information matches, return an empty string."
-                )
+                contents=prompt
             )
-            parsed_results.append(response.text)
+            text = response.text
+            if text is None:
+                print(f"Batch {i} returned None.")
+                text = ""  # Safe fallback
+            parsed_results.append(text)
             print(f"Parsed batch {i} of {len(dom_chunks)}")
         except Exception as e:
             print(f"Error in batch {i}: {e}")
             parsed_results.append("")
-
-    # ✅ Always return your results
     return "\n".join(parsed_results)
