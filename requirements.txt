@@ -8,3 +8,4 @@ html5lib
 python-dotenv
 fake-useragent
 python-dotenv
+google-genai
