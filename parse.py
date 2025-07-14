@@ -21,9 +21,10 @@ template = (
     "## EXTRACTION TASK ##\n"
     "{parse_description}\n\n"
     "## OUTPUT FORMAT ##\n"
-    "- Return the result as a clear, clean bullet list: `- Item 1`, `- Item 2`, etc.\n"
-    "- Each item must be on its own line.\n"
     "- Do not add any extra text, titles or explanations.\n"
+    "- You can use Tables, lists, paragraphs to format the content.\n"
+    "- Output only the result.\n"
+    "- If there is no match, return **'NO_MATCH_FOUND'** exactly.\n"
     "- If no matches are found, return exactly: 'NO_MATCH_FOUND'.\n"
 )
 

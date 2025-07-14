@@ -30,4 +30,9 @@ if "dom_content" in st.session_state:
             result = parse_with_Gemini(dom_chunks, parse_discription)
             st.write(result)
             
+            with open("parsed_result.txt", "w") as f:
+                f.write(result)
+                st.success("Parsed results saved to parsed_result.txt")
+                
+            
 
